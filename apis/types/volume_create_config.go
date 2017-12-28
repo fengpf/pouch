@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // VolumeCreateConfig config used to create a volume
@@ -18,15 +19,21 @@ import (
 type VolumeCreateConfig struct {
 
 	// Name of the volume driver to use.
+	// Max Length: 64
+	// Min Length: 1
+	// Pattern: [a-zA-Z0-9][a-zA-Z0-9-_.]{0,63}
 	Driver string `json:"Driver,omitempty"`
 
 	// A mapping of driver options and values. These options are passed directly to the driver and are driver specific.
 	DriverOpts map[string]string `json:"DriverOpts,omitempty"`
 
-	// User-defined key/value metadata.
+	// User-defined key/value metadata. White space could exist in value.
 	Labels map[string]string `json:"Labels,omitempty"`
 
-	// The new volume's name. If not specified, Docker generates a name.
+	// The new volume's name. If not specified, Pouch generates a name.
+	// Max Length: 64
+	// Min Length: 1
+	// Pattern: [a-zA-Z0-9][a-zA-Z0-9-_.]{0,63}
 	Name string `json:"Name,omitempty"`
 }
 
@@ -42,9 +49,137 @@ type VolumeCreateConfig struct {
 func (m *VolumeCreateConfig) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDriver(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateDriverOpts(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateLabels(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateName(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *VolumeCreateConfig) validateDriver(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Driver) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("Driver", "body", string(m.Driver), 1); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("Driver", "body", string(m.Driver), 64); err != nil {
+		return err
+	}
+
+	if err := validate.Pattern("Driver", "body", string(m.Driver), `[a-zA-Z0-9][a-zA-Z0-9-_.]{0,63}`); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *VolumeCreateConfig) validateDriverOpts(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DriverOpts) { // not required
+		return nil
+	}
+
+	if swag.IsZero(m.DriverOpts) { // not required
+		return nil
+	}
+
+	for k := range m.DriverOpts {
+
+		if swag.IsZero(m.DriverOpts[k]) { // not required
+			continue
+		}
+
+		if err := validate.MinLength("DriverOpts"+"."+k, "body", string(m.DriverOpts[k]), 1); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("DriverOpts"+"."+k, "body", string(m.DriverOpts[k]), 128); err != nil {
+			return err
+		}
+
+		if err := validate.Pattern("DriverOpts"+"."+k, "body", string(m.DriverOpts[k]), `[a-zA-Z0-9][a-zA-Z0-9-_.]{0,127}`); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *VolumeCreateConfig) validateLabels(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Labels) { // not required
+		return nil
+	}
+
+	if swag.IsZero(m.Labels) { // not required
+		return nil
+	}
+
+	for k := range m.Labels {
+
+		if swag.IsZero(m.Labels[k]) { // not required
+			continue
+		}
+
+		if err := validate.MinLength("Labels"+"."+k, "body", string(m.Labels[k]), 1); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("Labels"+"."+k, "body", string(m.Labels[k]), 128); err != nil {
+			return err
+		}
+
+		if err := validate.Pattern("Labels"+"."+k, "body", string(m.Labels[k]), `[a-zA-Z0-9][a-zA-Z0-9-_. ]{0,127}`); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *VolumeCreateConfig) validateName(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Name) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("Name", "body", string(m.Name), 1); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("Name", "body", string(m.Name), 64); err != nil {
+		return err
+	}
+
+	if err := validate.Pattern("Name", "body", string(m.Name), `[a-zA-Z0-9][a-zA-Z0-9-_.]{0,63}`); err != nil {
+		return err
+	}
+
 	return nil
 }
 
